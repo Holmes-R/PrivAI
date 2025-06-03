@@ -1,0 +1,10 @@
+venv/
+backend\feedback_app\__init__.py
+backend\document_app\__init__.py
+backend\chat_app\__init__.py
+backend\auth_app\__init__.py
+backend\feedback_app\migrations
+backend\document_app\migrations
+backend\chat_app\migrations
+backend\auth_app\migrations
+env
