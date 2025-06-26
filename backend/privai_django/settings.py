@@ -24,7 +24,14 @@ SECRET_KEY = 'django-insecure-b2r^1&@@%r5dcv9k$zhzztpzeb9iv@0n_vljz#-)xq77k2+x=5
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Use your email provider's SMTP server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'jhss12ahariharan@gmail.com'  
+EMAIL_HOST_PASSWORD = 'lhhi ncfv owkd gepc'
+EMAIL_PORT = 465  # SMTP port
+EMAIL_USE_SSL = True
 ALLOWED_HOSTS = []
 
 
@@ -37,6 +44,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'auth_app',
+    'chat_app',
+    'feedback_app',
+    'document_app',
+        'rest_framework_simplejwt',
+
 ]
 
 MIDDLEWARE = [
@@ -66,15 +80,27 @@ TEMPLATES = [
     },
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}
+# settings.py
+SIMPLE_JWT = {
+    'USER_ID_FIELD': 'id',  # Uses the custom UUID field
+    'USER_ID_CLAIM': 'user_id',  # Name of the claim in the token
+}
 WSGI_APPLICATION = 'privai_django.wsgi.application'
-
+import os
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    'default': {
+   'default': {
         'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
@@ -120,3 +146,9 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+AUTH_USER_MODEL = 'auth_app.User'  
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
+]
