@@ -1,0 +1,7 @@
+backend/privai_django/__init__.py
+backend/privai_django/__pycache__
+backend/auth_app/migrations
+backend/auth_app/__pycache__
+venv
+.env
+backend/template/documents
