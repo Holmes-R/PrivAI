@@ -4,6 +4,7 @@ from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.response import Response
 from .models import Document
 from .serializers import DocumentSerializer
+from rest_framework.permissions import IsAuthenticated
 # from .sync_google import sync_google_drive_file
 # from .sync_notion import sync_notion_page
 
@@ -51,3 +52,38 @@ def sync_notion_api(request):
         return Response({"error": "Authorization code required"}, status=400)
     synced = sync_notion_page(request.user, code)
     return Response({"synced_document_ids": synced})'''
+
+
+from .vector_store import get_embedding_model, get_user_collection
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def search_documents(request):
+    query = request.data.get("query", "")
+    if not query:
+        return Response({"error": "query required"}, status=400)
+
+    model = get_embedding_model()
+    query_emb = model.encode([query]).tolist()
+
+    collection = get_user_collection(request.user.id)
+    results = collection.query(
+        query_embeddings=query_emb,
+        n_results=5,
+        include=["documents", "metadatas", "distances"]
+    )
+
+    hits = []
+    for doc, meta, dist in zip(
+        results["documents"][0],
+        results["metadatas"][0],
+        results["distances"][0]
+    ):
+        hits.append({
+            "text": doc,
+            "title": meta["title"],
+            "document_id": meta["document_id"],
+            "score": round(1 - dist, 4)  # similarity
+        })
+
+    return Response({"results": hits})

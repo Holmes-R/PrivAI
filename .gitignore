@@ -4,6 +4,7 @@ backend/auth_app/migrations
 backend/auth_app/__pycache__
 venv
 .env
+backend/template
 backend/template/documents
 backend/media
 backend/document_app/__pycache__
