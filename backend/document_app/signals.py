@@ -9,32 +9,59 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+RAG_URL ="http://localhost:8001/api/embed"
+JWT_SECRET = "24139ba3293ed808dfcd2f01619579bb129418d6c13976f0f1e9a65ebb33da03"
+
 @receiver(post_save, sender=Document)
-def process_document_for_embeddings(sender, instance, created, **kwargs):
+def send_to_rag_service(sender, instance, created, **kwargs):
     if not created or not instance.file or instance.file_type not in ["pdf", "docx", "txt"]:
-        return  # Only process new local files
+        return
 
     try:
         file_path = instance.file.path
         text = extract_text_from_file(file_path, instance.file_type)
         if not text.strip():
-            logger.warning(f"No text extracted from {instance.id}")
+            logger.warning(f"No text in doc {instance.id}")
             return
 
         chunks = chunk_text(text)
-        model = get_embedding_model()
-        embeddings = model.encode(chunks, show_progress_bar=False).tolist()
+        if not chunks:
+            return
 
-        collection = get_user_collection(instance.user.id)
+        # === PREPARE PAYLOAD ===
+        payload = {
+            "user_id": instance.user.id,
+            "document_id": instance.id,
+            "title": instance.title,
+            "chunks": [
+                {
+                    "text": chunk,
+                    "title": instance.title,
+                    "document_id": instance.id
+                }
+                for chunk in chunks
+            ]
+        }
 
-        # Add to Chroma
-        collection.add(
-            ids=[f"doc{instance.id}_chunk{i}" for i in range(len(chunks))],
-            embeddings=embeddings,
-            documents=chunks,
-            metadatas=[{"document_id": instance.id, "title": instance.title} for _ in chunks]
+        # === GENERATE JWT ===
+        token = jwt.encode(
+            {"user_id": instance.user.id},
+            JWT_SECRET,
+            algorithm="HS256"
         )
 
-        logger.info(f"Indexed {len(chunks)} chunks for document {instance.id}")
+        headers = {
+            "Authorization": f"Bearer {token}",
+            "Content-Type": "application/json"
+        }
+
+        # === SEND TO FASTAPI ===
+        response = requests.post(RAG_URL, json=payload, headers=headers, timeout=30)
+        
+        if response.status_code == 200:
+            logger.info(f"Document {instance.id} indexed in RAG service")
+        else:
+            logger.error(f"RAG sync failed: {response.status_code} {response.text}")
+
     except Exception as e:
-        logger.error(f"Embedding failed for doc {instance.id}: {e}")
+        logger.error(f"RAG indexing failed for doc {instance.id}: {e}")
