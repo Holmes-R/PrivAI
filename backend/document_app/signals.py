@@ -26,17 +26,20 @@ def embed_document(sender, instance, created, **kwargs):
         if not chunks:
             return
 
+        title = instance.title
+        titled_chunks = [f"[{title}]: {c}" for c in chunks]
+
         model = get_embedding_model()
-        embeddings = model.encode(chunks, normalize_embeddings=True).tolist()
+        embeddings = model.encode(titled_chunks, normalize_embeddings=True).tolist()
         collection = get_user_collection(instance.user.id)
 
         collection.add(
             ids=[f"doc{instance.id}_c{i}" for i in range(len(chunks))],
             embeddings=embeddings,
-            documents=chunks,
+            documents=titled_chunks,
             metadatas=[{
                 "document_id": instance.id,
-                "title": instance.title
+                "title": title
             } for _ in chunks]
         )
 

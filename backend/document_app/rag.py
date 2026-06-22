@@ -84,7 +84,7 @@ def answer_question(user_id: int, question: str, n_results: int = 5, document_id
     if not sources:
         return {"answer": "I don't have enough information to answer that question.", "sources": []}
 
-    context = "\n\n".join([f"[{s['title']}]: {s['text']}" for s in sources])
+    context = "\n\n".join([s["text"] for s in sources])
 
     history_block = ""
     if history:
