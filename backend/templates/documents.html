@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 {% block title %}My Documents{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h3><i class="bi bi-files me-2"></i>My Documents</h3>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-        <i class="bi bi-upload me-1"></i>Upload
+<div class="d-flex justify-content-between align-items-center mb-5 mt-2">
+    <h2 class="fw-bold mb-0 text-gradient"><i class="bi bi-files me-2"></i>My Documents</h2>
+    <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        <i class="bi bi-cloud-arrow-up me-2"></i>Upload New
     </button>
 </div>
 
-<div class="input-group mb-4">
-    <span class="input-group-text"><i class="bi bi-search"></i></span>
-    <input type="text" class="form-control" id="searchInput" placeholder="Search across all your documents..." onkeydown="if(event.key==='Enter') searchDocs()">
-    <button class="btn btn-outline-success" onclick="searchDocs()"><i class="bi bi-send me-1"></i>Search</button>
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="input-group input-group-lg shadow-sm" style="border-radius: 2rem; overflow: hidden;">
+            <span class="input-group-text bg-white border-0 ps-4"><i class="bi bi-search text-muted"></i></span>
+            <input type="text" class="form-control border-0 px-3" id="searchInput" placeholder="Search semantically across all your documents..." onkeydown="if(event.key==='Enter') searchDocs()" style="box-shadow: none;">
+            <button class="btn btn-success px-4" onclick="searchDocs()"><i class="bi bi-stars me-2"></i>Discover</button>
+        </div>
+    </div>
 </div>
 
 <div id="searchResults" class="d-none mb-4"></div>
@@ -111,19 +115,22 @@ async function loadDocuments() {
     container.innerHTML = docs.map((d, i) => {
         const indexed = d.chunk_count > 0;
         return `
-        <div class="col-md-4 mb-3" style="animation:fadeInUp .3s ease-out ${i*0.05}s both">
-            <div class="card h-100 card-hover">
-                <div class="card-body d-flex flex-column">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="card-title mb-0 text-truncate"><i class="bi bi-file-earmark-text me-2"></i>${d.title}</h6>
-                        ${indexed ? '<span class="badge bg-success" title="Indexed"><i class="bi bi-check-lg"></i></span>' : '<span class="badge bg-warning text-dark" title="Processing"><i class="bi bi-hourglass"></i></span>'}
+        <div class="col-md-4 mb-4" style="animation:fadeInUp .4s cubic-bezier(0.4, 0, 0.2, 1) ${i*0.08}s both">
+            <div class="card glass-panel h-100 card-hover border-0">
+                <div class="card-body d-flex flex-column p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <div class="p-2 bg-primary bg-opacity-10 rounded text-primary">
+                            <i class="bi bi-file-earmark-text fs-4"></i>
+                        </div>
+                        ${indexed ? '<span class="badge bg-success bg-opacity-10 text-success border border-success rounded-pill px-2 py-1" title="Indexed"><i class="bi bi-check-circle-fill me-1"></i>Ready</span>' : '<span class="badge bg-warning bg-opacity-10 text-warning border border-warning rounded-pill px-2 py-1" title="Processing"><i class="bi bi-hourglass-split me-1"></i>Indexing</span>'}
                     </div>
-                    <p class="small text-muted mb-2">${d.file_type.toUpperCase()} &middot; ${new Date(d.created_at).toLocaleDateString()}</p>
+                    <h5 class="card-title fw-bold mb-1 text-truncate" title="${d.title}">${d.title}</h5>
+                    <p class="small text-muted mb-4">${d.file_type.toUpperCase()} &middot; ${new Date(d.created_at).toLocaleDateString()}</p>
                     <div class="mt-auto">
-                        <div class="btn-group btn-group-sm w-100">
-                            <button class="btn btn-outline-primary" onclick="previewDoc(${d.id})" title="Preview"><i class="bi bi-eye"></i></button>
-                            <a href="/documents/${d.id}/ask/" class="btn btn-outline-success" title="Ask Questions"><i class="bi bi-question-circle"></i></a>
-                            <button class="btn btn-outline-danger" onclick="confirmDelete(${d.id}, '${d.title.replace(/'/g, "\\'")}')" title="Delete"><i class="bi bi-trash"></i></button>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-light rounded-circle p-2 flex-shrink-0 shadow-sm" onclick="previewDoc(${d.id})" title="Preview"><i class="bi bi-eye text-primary"></i></button>
+                            <a href="/documents/${d.id}/ask/" class="btn btn-success flex-grow-1 rounded-pill shadow-sm" title="Ask Questions"><i class="bi bi-chat-right-text me-2"></i>Ask</a>
+                            <button class="btn btn-light rounded-circle p-2 flex-shrink-0 shadow-sm" onclick="confirmDelete(${d.id}, '${d.title.replace(/'/g, "\\'")}')" title="Delete"><i class="bi bi-trash text-danger"></i></button>
                         </div>
                     </div>
                 </div>

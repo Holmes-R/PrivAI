@@ -1,31 +1,41 @@
 {% extends "base.html" %}
 {% block title %}Register{% endblock %}
 {% block content %}
-<div class="row justify-content-center mt-5">
-    <div class="col-md-5">
-        <div class="card shadow">
-            <div class="card-body p-4">
-                <h3 class="text-center mb-4">Register</h3>
+<div class="row justify-content-center mt-5 mb-5 align-items-center" style="min-height: 70vh;">
+    <div class="col-md-6 col-lg-5">
+        <div class="card glass-panel shadow-lg border-0" style="border-radius: 1.5rem;">
+            <div class="card-body p-5">
+                <div class="text-center mb-4">
+                    <div class="d-inline-block p-3 rounded-circle bg-success bg-opacity-10 mb-3">
+                        <i class="bi bi-person-plus-fill fs-1 text-success"></i>
+                    </div>
+                    <h3 class="fw-bolder text-gradient">Create Account</h3>
+                    <p class="text-muted small">Join PrivAI and secure your documents</p>
+                </div>
                 <form id="registerForm">
-                    <div class="mb-3">
-                        <label class="form-label">First Name</label>
-                        <input type="text" class="form-control" id="firstName" required>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold ms-1">First Name</label>
+                            <input type="text" class="form-control bg-light" id="firstName" required placeholder="John">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-muted small fw-bold ms-1">Last Name</label>
+                            <input type="text" class="form-control bg-light" id="lastName" required placeholder="Doe">
+                        </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Last Name</label>
-                        <input type="text" class="form-control" id="lastName" required>
+                        <label class="form-label text-muted small fw-bold ms-1">Email Address</label>
+                        <input type="email" class="form-control bg-light" id="email" required placeholder="you@example.com">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" required>
+                    <div class="mb-4">
+                        <label class="form-label text-muted small fw-bold ms-1">Password</label>
+                        <input type="password" class="form-control bg-light" id="password" minlength="8" required placeholder="Min. 8 characters">
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Password</label>
-                        <input type="password" class="form-control" id="password" minlength="8" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Register</button>
+                    <button type="submit" class="btn btn-success btn-lg w-100 rounded-pill shadow-sm">Register <i class="bi bi-arrow-right ms-1"></i></button>
                 </form>
-                <p class="text-center mt-3 mb-0">Already have an account? <a href="/login/">Login</a></p>
+                <div class="text-center mt-4 pt-3 border-top">
+                    <p class="text-muted small mb-0">Already have an account? <a href="/login/" class="text-decoration-none fw-bold text-success">Login here</a></p>
+                </div>
             </div>
         </div>
     </div>

@@ -3,36 +3,42 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
-        <h3 class="mb-4"><i class="bi bi-question-circle me-2"></i>Ask Your Documents</h3>
-        <div class="card shadow-sm mb-4">
-            <div class="card-body">
-                <form id="askForm">
-                    <div class="mb-3">
-                        <textarea class="form-control" id="question" rows="3" placeholder="Ask a question based on your documents..." required></textarea>
+        <div class="text-center mb-5 mt-3">
+            <h2 class="fw-bold text-gradient"><i class="bi bi-magic me-2"></i>Global Knowledge Search</h2>
+            <p class="text-muted">Ask a question and we'll search across all your indexed documents to find the answer.</p>
+        </div>
+        
+        <div class="mb-5">
+            <form id="askForm">
+                <div class="glass-panel p-2 rounded-4 shadow-sm">
+                    <textarea class="form-control border-0 bg-transparent" id="question" rows="3" placeholder="What would you like to know?" required style="box-shadow: none; resize: none; font-size: 1.1rem;"></textarea>
+                    <div class="d-flex justify-content-end mt-2">
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-stars me-2"></i>Generate Answer
+                        </button>
                     </div>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-send me-1"></i>Ask
-                    </button>
-                </form>
-            </div>
+                </div>
+            </form>
         </div>
-        <div id="answerSection" class="d-none">
-            <div class="card shadow-sm mb-4">
-                <div class="card-body">
-                    <h6 class="text-muted mb-2">Answer:</h6>
-                    <p id="answerText" class="fs-5"></p>
+
+        <div id="answerSection" class="d-none animation-fade-in chat-card">
+            <div class="d-flex flex-column align-items-start mb-5">
+                <div class="glass-panel p-4 rounded-4 shadow me-2 w-100" style="border-top: 4px solid var(--primary-color);">
+                    <div class="d-flex align-items-center mb-3 text-primary fw-bold">
+                        <i class="bi bi-robot fs-4 me-2"></i> AI Response
+                    </div>
+                    <p id="answerText" class="fs-5 mb-0" style="line-height: 1.6;"></p>
                 </div>
             </div>
-            <div class="card shadow-sm mb-4">
-                <div class="card-header">
-                    <h6 class="mb-0">Sources</h6>
-                </div>
-                <div class="card-body" id="sourcesList"></div>
-            </div>
+            
+            <h6 class="text-muted fw-bold mb-3 ms-2"><i class="bi bi-journal-text me-2"></i>Sources Used</h6>
+            <div class="row g-3" id="sourcesList"></div>
         </div>
-        <div id="loadingAnswer" class="text-center d-none">
-            <div class="spinner-border text-success mb-2" role="status"></div>
-            <p class="text-muted">Searching your documents...</p>
+
+        <div id="loadingAnswer" class="text-center d-none py-5">
+            <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
+            <h5 class="text-muted fw-bold">Synthesizing knowledge...</h5>
+            <p class="text-muted small">Scanning your secure vector database</p>
         </div>
     </div>
 </div>
@@ -57,9 +63,14 @@ document.getElementById('askForm').addEventListener('submit', async (e) => {
 
     document.getElementById('answerText').textContent = data.answer;
     document.getElementById('sourcesList').innerHTML = data.sources.map(s => `
-        <div class="mb-2 p-2 bg-light rounded">
-            <small class="text-muted">${s.title} (score: ${s.score})</small>
-            <p class="mb-0 small">${s.text.substring(0, 200)}...</p>
+        <div class="col-md-6">
+            <div class="glass-panel p-3 rounded-4 h-100 card-hover">
+                <div class="d-flex justify-content-between mb-2">
+                    <small class="fw-bold text-primary text-truncate"><i class="bi bi-file-earmark-text me-1"></i>${s.title}</small>
+                    <span class="badge bg-light text-dark border">Score: ${s.score.toFixed(2)}</span>
+                </div>
+                <p class="mb-0 small text-muted" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">"${s.text}"</p>
+            </div>
         </div>
     `).join('');
     document.getElementById('answerSection').classList.remove('d-none');
