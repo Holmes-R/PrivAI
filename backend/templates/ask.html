@@ -21,13 +21,13 @@
             </form>
         </div>
 
-        <div id="answerSection" class="d-none animation-fade-in chat-card">
-            <div class="d-flex flex-column align-items-start mb-5">
-                <div class="glass-panel p-4 rounded-4 shadow me-2 w-100" style="border-top: 4px solid var(--primary-color);">
-                    <div class="d-flex align-items-center mb-3 text-primary fw-bold">
-                        <i class="bi bi-robot fs-4 me-2"></i> AI Response
-                    </div>
-                    <p id="answerText" class="fs-5 mb-0" style="line-height: 1.6;"></p>
+        <div id="answerSection" class="d-none chat-card">
+            <div class="d-flex align-items-start mb-5">
+                <div class="flex-shrink-0 me-3 border rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                    <i class="bi bi-stars text-primary fs-5"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div id="answerText" class="markdown-body text-dark" style="font-size: 1.1rem; line-height: 1.7;"></div>
                 </div>
             </div>
             
@@ -37,7 +37,7 @@
 
         <div id="loadingAnswer" class="text-center d-none py-5">
             <div class="spinner-grow text-primary mb-3" style="width: 3rem; height: 3rem;" role="status"></div>
-            <h5 class="text-muted fw-bold">Synthesizing knowledge...</h5>
+            <h5 class="text-muted fw-bold">Wait for a minute...</h5>
             <p class="text-muted small">Scanning your secure vector database</p>
         </div>
     </div>
@@ -53,15 +53,27 @@ document.getElementById('askForm').addEventListener('submit', async (e) => {
     document.getElementById('answerSection').classList.add('d-none');
     document.getElementById('loadingAnswer').classList.remove('d-none');
 
+    // Disable inputs
+    const askInput = document.getElementById('question');
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    askInput.disabled = true;
+    submitBtn.disabled = true;
+
     const data = await api.request('/api/documents/ask/', 'POST', {
         question: question,
         n_results: 5
     });
 
     document.getElementById('loadingAnswer').classList.add('d-none');
+    
+    // Re-enable inputs
+    askInput.disabled = false;
+    submitBtn.disabled = false;
+    askInput.focus();
+
     if (!data) { showAlert('Failed to get answer. Try logging in again.', 'warning'); return; }
 
-    document.getElementById('answerText').textContent = data.answer;
+    document.getElementById('answerText').innerHTML = marked.parse(data.answer);
     document.getElementById('sourcesList').innerHTML = data.sources.map(s => `
         <div class="col-md-6">
             <div class="glass-panel p-3 rounded-4 h-100 card-hover">

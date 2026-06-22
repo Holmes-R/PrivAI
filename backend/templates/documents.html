@@ -51,7 +51,7 @@
                         <label class="form-label">File</label>
                         <input type="file" class="form-control" id="docFile" required>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100">Upload</button>
+                    <button type="submit" class="btn btn-primary w-100" id="uploadSubmitBtn">Upload</button>
                 </form>
             </div>
         </div>
@@ -115,7 +115,7 @@ async function loadDocuments() {
     container.innerHTML = docs.map((d, i) => {
         const indexed = d.chunk_count > 0;
         return `
-        <div class="col-md-4 mb-4" style="animation:fadeInUp .4s cubic-bezier(0.4, 0, 0.2, 1) ${i*0.08}s both">
+        <div class="col-md-4 mb-4">
             <div class="card glass-panel h-100 card-hover border-0">
                 <div class="card-body d-flex flex-column p-4">
                     <div class="d-flex justify-content-between align-items-start mb-3">
@@ -210,11 +210,19 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
 
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    const submitBtn = document.getElementById('uploadSubmitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Wait for a minute...';
+
     const formData = new FormData();
     formData.append('title', document.getElementById('docTitle').value);
     formData.append('file_type', document.getElementById('docType').value);
     formData.append('file', document.getElementById('docFile').files[0]);
     const result = await api.upload('/api/documents/', formData);
+    
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Upload';
+    
     if (result) {
         bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
         document.getElementById('uploadForm').reset();

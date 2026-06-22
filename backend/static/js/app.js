@@ -7,25 +7,14 @@ function showAlert(msg, type = 'info') {
     setTimeout(() => alert.remove(), 5000);
 }
 
-function toggleDarkMode() {
-    document.body.classList.toggle('dark-mode');
-    const btn = document.getElementById('darkModeToggle');
-    const isDark = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDark ? '1' : '0');
-    if (btn) btn.innerHTML = isDark ? '<i class="bi bi-sun-fill"></i>' : '<i class="bi bi-moon-fill"></i>';
-}
+// Dark mode removed per user request
 
 document.addEventListener('DOMContentLoaded', () => {
     const authNav = document.getElementById('authNav');
     const indexAuth = document.getElementById('indexAuth');
     const indexApp = document.getElementById('indexApp');
 
-    if (localStorage.getItem('darkMode') === '1') {
-        document.body.classList.add('dark-mode');
-        const btn = document.getElementById('darkModeToggle');
-        if (btn) btn.innerHTML = '<i class="bi bi-sun-fill"></i>';
-    }
-
+    // Theme logic removed
     if (api.isAuthenticated()) {
         if (authNav) {
             authNav.innerHTML = `

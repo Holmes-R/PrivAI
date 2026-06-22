@@ -23,7 +23,6 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: var(--bg-light);
     color: var(--text-light);
-    transition: background-color 0.4s ease, color 0.4s ease;
     overflow-x: hidden;
 }
 
@@ -64,7 +63,6 @@ body::before {
 }
 
 .card-hover:hover {
-    transform: translateY(-5px) scale(1.01);
     box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     border-color: var(--primary-color);
 }
@@ -81,14 +79,10 @@ body::before {
 .btn-success:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
 
 /* Chat specific */
-.chat-card { animation: fadeInUp 0.4s ease-out forwards; opacity: 0; transform: translateY(15px); border-radius: 1rem; }
+.chat-card { border-radius: 1rem; }
 .chat-card.border-success { border-color: var(--success-color) !important; background-color: rgba(16, 185, 129, 0.03); }
 .suggest-btn { border-radius: 2rem; padding: 0.5rem 1rem; font-size: 0.85rem; border: 1px solid var(--primary-color); color: var(--primary-color); background: transparent; transition: all 0.2s ease; margin-bottom: 0.5rem; }
-.suggest-btn:hover { background-color: var(--primary-color); color: white; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
-
-/* Animations */
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-@keyframes pulseGlow { 0% { box-shadow: 0 0 0 0 rgba(99,102,241,0.4); } 70% { box-shadow: 0 0 0 10px rgba(99,102,241,0); } 100% { box-shadow: 0 0 0 0 rgba(99,102,241,0); } }
+.suggest-btn:hover { background-color: var(--primary-color); color: white; box-shadow: 0 4px 10px rgba(99, 102, 241, 0.2); }
 
 /* Inputs */
 .form-control, .form-select { border-radius: 0.75rem; border: 1px solid #e2e8f0; padding: 0.75rem 1rem; transition: all 0.2s; background: rgba(255,255,255,0.9); }
@@ -109,29 +103,22 @@ body::before {
 ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.3); }
 
-/* --- Dark Mode --- */
-.dark-mode {
-    background-color: var(--bg-dark);
-    color: var(--text-dark);
-}
-.dark-mode::before {
-    background: radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.12), transparent 40%),
-                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.08), transparent 30%);
-}
-.dark-mode .glass-panel { background: var(--surface-dark); border-color: var(--glass-border-dark); }
-.dark-mode .glass-nav { background: rgba(15, 23, 42, 0.8) !important; border-color: var(--glass-border-dark); }
-.dark-mode .navbar-dark .navbar-brand, .dark-mode .navbar-dark .nav-link { color: #f8fafc; }
-.dark-mode .card { background: var(--surface-dark); border-color: rgba(255,255,255,0.05); }
-.dark-mode .card-hover:hover { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4); border-color: var(--primary-hover); }
-.dark-mode .modal-content { background: var(--surface-dark-solid); color: var(--text-dark); border: 1px solid rgba(255,255,255,0.1); }
-.dark-mode .modal-header, .dark-mode .modal-footer { border-color: rgba(255,255,255,0.05); }
-.dark-mode .bg-light { background-color: rgba(255,255,255,0.05) !important; color: #fff; }
-.dark-mode .text-muted { color: var(--text-muted-dark) !important; }
-.dark-mode .form-control, .dark-mode .form-select { background-color: rgba(15, 23, 42, 0.6); border-color: rgba(255,255,255,0.1); color: #f8fafc; }
-.dark-mode .form-control:focus, .dark-mode .form-select:focus { background-color: rgba(15, 23, 42, 0.9); border-color: var(--primary-hover); box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
-.dark-mode .input-group-text { background-color: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); color: #f8fafc; }
-.dark-mode .chat-card.border-success { background-color: rgba(16, 185, 129, 0.1); }
-.dark-mode .btn-outline-secondary { color: var(--text-muted-dark); border-color: rgba(255,255,255,0.1); }
-.dark-mode .btn-outline-secondary:hover { background: rgba(255,255,255,0.1); color: #fff; }
-.dark-mode ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); }
-.dark-mode ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.4); }
+/* Dark mode removed */
+
+/* Markdown Typography Styles */
+.markdown-body { font-size: 1rem; line-height: 1.6; word-wrap: break-word; }
+.markdown-body p { margin-top: 0; margin-bottom: 1rem; }
+.markdown-body p:last-child { margin-bottom: 0; }
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4, .markdown-body h5, .markdown-body h6 { margin-top: 1.5rem; margin-bottom: 0.5rem; font-weight: 600; line-height: 1.25; }
+.markdown-body h1 { font-size: 1.5em; border-bottom: 1px solid var(--glass-border-light); padding-bottom: .3em; }
+.markdown-body h2 { font-size: 1.25em; border-bottom: 1px solid var(--glass-border-light); padding-bottom: .3em; }
+.markdown-body h3 { font-size: 1.1em; }
+.markdown-body ul, .markdown-body ol { margin-top: 0; margin-bottom: 1rem; padding-left: 1.5em; }
+.markdown-body li { margin-bottom: 0.25em; }
+.markdown-body li > p { margin-bottom: 0.25em; }
+.markdown-body blockquote { margin: 0 0 1rem; padding: 0 1em; color: var(--text-muted-light); border-left: 0.25em solid #dfe2e5; }
+.markdown-body pre { background-color: rgba(0,0,0,0.05); padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.9em; margin-bottom: 1rem; }
+.markdown-body code { font-family: ui-monospace, SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace; background-color: rgba(0,0,0,0.05); padding: 0.2em 0.4em; border-radius: 6px; font-size: 0.9em; }
+.markdown-body pre code { padding: 0; background-color: transparent; border-radius: 0; }
+.markdown-body table { width: 100%; margin-bottom: 1rem; color: inherit; border-collapse: collapse; }
+.markdown-body table th, .markdown-body table td { padding: 0.5rem; border: 1px solid var(--glass-border-light); }

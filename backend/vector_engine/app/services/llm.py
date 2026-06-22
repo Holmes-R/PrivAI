@@ -27,12 +27,22 @@ def _local_fallback(prompt: str) -> str:
 
 def answer(question: str, chunks: list) -> str:
     context = "\n\n".join([f"[{c['title']}]: {c['text']}" for c in chunks])
-    prompt = f"""Answer using only this context:
+    prompt = f"""You are a helpful and intelligent assistant. Answer the following question using ONLY the provided context. 
+If the answer is not contained in the context, say "I don't have enough information to answer that based on the provided documents."
 
+IMPORTANT: Format your response in a neat, clean, and highly readable way using Markdown. 
+- Use headings (##) for structure
+- Use bullet points or numbered lists for multiple items
+- Break text into short, readable paragraphs
+- Use bold (**text**) for emphasis on key terms
+
+CONTEXT:
 {context}
 
-Question: {question}
-Answer:"""
+QUESTION: 
+{question}
+
+NEAT AND FORMATTED ANSWER:"""
 
     for model_name in GEMINI_MODELS:
         for attempt in range(3):
