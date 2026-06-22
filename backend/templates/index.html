@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-8 text-center">
+        <h1 class="display-4 fw-bold mb-3"><i class="bi bi-shield-lock-fill text-primary me-2"></i>PrivAI</h1>
+        <p class="lead text-muted mb-4">Your Private Document RAG System</p>
+        <p class="mb-5">Upload documents, ask questions, get answers — all with your data staying private and secure.</p>
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="card border-primary h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-upload display-5 text-primary mb-3"></i>
+                        <h5>Upload</h5>
+                        <p class="text-muted small">Upload PDF, DOCX, or TXT documents securely.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-success h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-search display-5 text-success mb-3"></i>
+                        <h5>Retrieve</h5>
+                        <p class="text-muted small">Semantic search across your personal document collection.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-info h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-chat display-5 text-info mb-3"></i>
+                        <h5>Ask</h5>
+                        <p class="text-muted small">Get AI-powered answers grounded in your documents.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="indexAuth">
+            <a href="/login/" class="btn btn-primary btn-lg me-2">Login</a>
+            <a href="/register/" class="btn btn-outline-primary btn-lg">Register</a>
+        </div>
+        <div id="indexApp" class="d-none">
+            <a href="/documents/" class="btn btn-primary btn-lg me-2">Go to Documents</a>
+            <a href="/ask/" class="btn btn-success btn-lg">Ask Questions</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

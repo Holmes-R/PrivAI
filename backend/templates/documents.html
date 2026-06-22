@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block title %}My Documents{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-files me-2"></i>My Documents</h3>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+        <i class="bi bi-upload me-1"></i>Upload
+    </button>
+</div>
+
+<div class="input-group mb-4">
+    <span class="input-group-text"><i class="bi bi-search"></i></span>
+    <input type="text" class="form-control" id="searchInput" placeholder="Search across all your documents..." onkeydown="if(event.key==='Enter') searchDocs()">
+    <button class="btn btn-outline-success" onclick="searchDocs()"><i class="bi bi-send me-1"></i>Search</button>
+</div>
+
+<div id="searchResults" class="d-none mb-4"></div>
+
+<div class="row" id="documentsList">
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Upload Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" class="form-control" id="docTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File Type</label>
+                        <select class="form-select" id="docType">
+                            <option value="pdf">PDF</option>
+                            <option value="docx">DOCX</option>
+                            <option value="txt">TXT</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File</label>
+                        <input type="file" class="form-control" id="docFile" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">Upload</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="previewModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="previewTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="previewMeta" class="mb-3"></div>
+                <div id="previewSummary" class="d-none mb-3 p-3 rounded border border-success">
+                    <strong><i class="bi bi-file-text me-1"></i>Summary</strong>
+                    <p class="mb-0 mt-1 small" id="previewSummaryText"></p>
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <button class="btn btn-sm btn-outline-success" id="summarizeBtn" onclick="summarizeDoc()">
+                        <i class="bi bi-file-text me-1"></i>Summarize
+                    </button>
+                </div>
+                <pre id="previewContent" class="bg-light p-3 rounded" style="white-space:pre-wrap;max-height:50vh;overflow-y:auto;"></pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Document</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Delete <strong id="deleteDocName"></strong>? This will also remove all vector embeddings and chat history.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+let deleteTargetId = null;
+let currentPreviewId = null;
+
+async function loadDocuments() {
+    const docs = await api.request('/api/documents/');
+    const container = document.getElementById('documentsList');
+    if (!docs || docs.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted"><i class="bi bi-inbox me-2"></i>No documents yet. Upload your first document!</p></div>';
+        return;
+    }
+    container.innerHTML = docs.map((d, i) => {
+        const indexed = d.chunk_count > 0;
+        return `
+        <div class="col-md-4 mb-3" style="animation:fadeInUp .3s ease-out ${i*0.05}s both">
+            <div class="card h-100 card-hover">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="card-title mb-0 text-truncate"><i class="bi bi-file-earmark-text me-2"></i>${d.title}</h6>
+                        ${indexed ? '<span class="badge bg-success" title="Indexed"><i class="bi bi-check-lg"></i></span>' : '<span class="badge bg-warning text-dark" title="Processing"><i class="bi bi-hourglass"></i></span>'}
+                    </div>
+                    <p class="small text-muted mb-2">${d.file_type.toUpperCase()} &middot; ${new Date(d.created_at).toLocaleDateString()}</p>
+                    <div class="mt-auto">
+                        <div class="btn-group btn-group-sm w-100">
+                            <button class="btn btn-outline-primary" onclick="previewDoc(${d.id})" title="Preview"><i class="bi bi-eye"></i></button>
+                            <a href="/documents/${d.id}/ask/" class="btn btn-outline-success" title="Ask Questions"><i class="bi bi-question-circle"></i></a>
+                            <button class="btn btn-outline-danger" onclick="confirmDelete(${d.id}, '${d.title.replace(/'/g, "\\'")}')" title="Delete"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`}).join('');
+}
+
+async function searchDocs() {
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query) return;
+    const data = await api.request('/api/documents/search/', 'POST', { query });
+    const container = document.getElementById('searchResults');
+    if (!data || !data.results || data.results.length === 0) {
+        container.innerHTML = '<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No results found.</div>';
+    } else {
+        container.innerHTML = `<div class="card"><div class="card-header"><strong><i class="bi bi-search me-1"></i>Search Results</strong></div><div class="card-body">${data.results.map(r => `
+            <div class="mb-2 p-2 bg-light rounded">
+                <small class="text-muted">${r.title} (score: ${r.score})</small>
+                <p class="mb-0 small">${r.text.substring(0, 200)}...</p>
+            </div>`).join('')}</div></div>`;
+    }
+    container.classList.remove('d-none');
+}
+
+let summaryCache = {};
+
+async function previewDoc(docId) {
+    currentPreviewId = docId;
+    const data = await api.request(`/api/documents/${docId}/preview/`);
+    if (!data) return;
+    document.getElementById('previewTitle').textContent = data.title;
+    document.getElementById('previewMeta').innerHTML = `
+        <span class="badge bg-secondary me-1">${data.file_type.toUpperCase()}</span>
+        <span class="badge bg-info me-1">${data.word_count} words</span>
+        <span class="badge bg-${data.indexed ? 'success' : 'warning'}">${data.indexed ? `${data.chunk_count} chunks indexed` : 'Not indexed yet'}</span>
+    `;
+    document.getElementById('previewContent').textContent = data.content;
+    document.getElementById('previewSummary').classList.add('d-none');
+    if (summaryCache[docId]) {
+        document.getElementById('previewSummaryText').textContent = summaryCache[docId];
+        document.getElementById('previewSummary').classList.remove('d-none');
+    }
+    document.getElementById('summarizeBtn').disabled = false;
+    document.getElementById('summarizeBtn').innerHTML = '<i class="bi bi-file-text me-1"></i>Summarize';
+    new bootstrap.Modal(document.getElementById('previewModal')).show();
+}
+
+async function summarizeDoc() {
+    if (!currentPreviewId) return;
+    const btn = document.getElementById('summarizeBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Summarizing...';
+    const data = await api.request(`/api/documents/${currentPreviewId}/summarize/`);
+    if (data && data.summary) {
+        summaryCache[currentPreviewId] = data.summary;
+        document.getElementById('previewSummaryText').textContent = data.summary;
+        document.getElementById('previewSummary').classList.remove('d-none');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-file-text me-1"></i>Summarize';
+}
+
+function confirmDelete(docId, title) {
+    deleteTargetId = docId;
+    document.getElementById('deleteDocName').textContent = title;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+    if (!deleteTargetId) return;
+    const result = await api.request(`/api/documents/${deleteTargetId}/`, 'DELETE');
+    if (result !== false) {
+        bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+        loadDocuments();
+    }
+});
+
+document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append('title', document.getElementById('docTitle').value);
+    formData.append('file_type', document.getElementById('docType').value);
+    formData.append('file', document.getElementById('docFile').files[0]);
+    const result = await api.upload('/api/documents/', formData);
+    if (result) {
+        bootstrap.Modal.getInstance(document.getElementById('uploadModal')).hide();
+        document.getElementById('uploadForm').reset();
+        loadDocuments();
+    }
+});
+
+loadDocuments();
+</script>
+{% endblock %}

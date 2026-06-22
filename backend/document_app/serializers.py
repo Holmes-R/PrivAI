@@ -1,9 +1,11 @@
-# document_app/serializers.py  (NEW/COMPLETE)
 from rest_framework import serializers
 from .models import Document
+from .vector_store import get_user_collection
+
 
 class DocumentSerializer(serializers.ModelSerializer):
-    # For CREATE (upload): limit file_type to local files only
+    chunk_count = serializers.SerializerMethodField()
+
     file_type = serializers.ChoiceField(
         choices=[
             ("pdf", "PDF"),
@@ -15,22 +17,21 @@ class DocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Document
         fields = [
-            "id",
-            "title",
-            "file_type",
-            "file",
-            "remote_id",
-            "remote_url",
-            "created_at",
-            "updated_at",
+            "id", "title", "file_type", "file",
+            "remote_id", "remote_url", "created_at", "updated_at",
+            "chunk_count",
         ]
         read_only_fields = [
-            "id",
-            "remote_id",
-            "remote_url",
-            "created_at",
-            "updated_at",
+            "id", "remote_id", "remote_url", "created_at", "updated_at", "chunk_count",
         ]
+
+    def get_chunk_count(self, obj):
+        try:
+            collection = get_user_collection(obj.user_id)
+            ids = collection.get(where={"document_id": obj.id}).get("ids", [])
+            return len(ids)
+        except Exception:
+            return 0
 
     def validate(self, attrs):
         file_type = attrs.get("file_type")
@@ -43,5 +44,4 @@ class DocumentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         validated_data["user"] = self.context["request"].user
-        # file_type only local, so no remote_id/url set here
         return super().create(validated_data)

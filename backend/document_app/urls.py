@@ -3,12 +3,11 @@ from django.urls import path
 from . import views
 from .views import *
 urlpatterns = [
-    # API: GET=List all docs, POST=Upload local file
     path("", DocumentListCreateView.as_view(), name="document-list-create"),
-    # API: GET/PUT/DELETE single doc by ID
     path("<int:pk>/", DocumentDetailView.as_view(), name="document-detail"),
-    # API Sync (OAuth callback)
-    #path("sync/google/", sync_google_api, name="sync_google"),
-    #path("sync/notion/", sync_notion_api, name="sync_notion"),
+    path("<int:doc_id>/preview/", views.preview_document, name="document-preview"),
+    path("<int:doc_id>/summarize/", views.summarize_document_view, name="document-summarize"),
+    path("<int:doc_id>/suggest/", views.suggest_questions_view, name="document-suggest"),
     path("search/", views.search_documents, name="search"),
+    path("ask/", views.ask_documents, name="ask"),
 ]

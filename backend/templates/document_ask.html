@@ -1,0 +1,174 @@
+{% extends "base.html" %}
+{% block title %}Ask Document{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div id="docHeader" class="d-flex align-items-center mb-4">
+            <a href="/documents/" class="btn btn-outline-secondary btn-sm me-3">&larr; Back</a>
+            <div class="flex-grow-1">
+                <h4 class="mb-0" id="docTitle"><i class="bi bi-file-earmark-text me-2"></i>Loading...</h4>
+                <small class="text-muted" id="docMeta"></small>
+            </div>
+            <button class="btn btn-outline-primary btn-sm" id="exportChatBtn" onclick="exportChat()" title="Export chat history">
+                <i class="bi bi-download"></i>
+            </button>
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <form id="askForm">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="question" placeholder="Ask a question about this document..." required>
+                        <button class="btn btn-success" type="submit"><i class="bi bi-send me-1"></i>Ask</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="suggestedQuestions" class="d-none mb-4">
+            <small class="text-muted fw-bold"><i class="bi bi-lightbulb me-1"></i>Suggested questions</small>
+            <div id="suggestionsList" class="d-flex flex-wrap gap-1 mt-1"></div>
+        </div>
+
+        <div id="chatHistory"><p class="text-muted text-center small py-3">Loading history...</p></div>
+
+        <div id="emptyState" class="d-none text-center py-5">
+            <i class="bi bi-chat-dots display-4 text-muted"></i>
+            <p class="text-muted mt-2">No questions asked yet. Try one of the suggestions above!</p>
+        </div>
+
+        <div id="loadingSpinner" class="text-center d-none py-3">
+            <div class="spinner-border text-success mb-2" role="status"></div>
+            <p class="text-muted small">Searching document...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+if (!api.isAuthenticated()) { window.location.href = '/login/'; }
+
+const DOC_ID = {{ doc_id }};
+let chatHistory = [];
+
+async function loadDocInfo() {
+    const docs = await api.request('/api/documents/');
+    if (!docs) { window.location.href = '/documents/'; return; }
+    const doc = docs.find(d => d.id === DOC_ID);
+    if (!doc) { window.location.href = '/documents/'; return; }
+    document.getElementById('docTitle').innerHTML = `<i class="bi bi-file-earmark-text me-2"></i>${doc.title}`;
+    document.getElementById('docMeta').textContent = `${doc.file_type.toUpperCase()} · ${new Date(doc.created_at).toLocaleDateString()}`;
+}
+
+async function loadSuggestedQuestions() {
+    const data = await api.request(`/api/documents/${DOC_ID}/suggest/`);
+    if (!data || !data.questions) return;
+    const container = document.getElementById('suggestionsList');
+    container.innerHTML = data.questions.map(q =>
+        `<button class="btn btn-outline-success btn-sm suggest-btn" onclick="askSuggested('${q.replace(/'/g, "\\'")}')">${q}</button>`
+    ).join('');
+    document.getElementById('suggestedQuestions').classList.remove('d-none');
+}
+
+function askSuggested(question) {
+    document.getElementById('question').value = question;
+    document.getElementById('askForm').dispatchEvent(new Event('submit'));
+}
+
+async function loadHistory() {
+    const history = await api.request(`/api/history/chat/?document_id=${DOC_ID}`);
+    const container = document.getElementById('chatHistory');
+    if (!history || history.length === 0) {
+        document.getElementById('emptyState').classList.remove('d-none');
+        document.getElementById('suggestedQuestions').classList.remove('d-none');
+        container.innerHTML = '';
+        return;
+    }
+    document.getElementById('emptyState').classList.add('d-none');
+    chatHistory = history;
+    container.innerHTML = history.map((h, i) => `
+        <div class="card mb-2 chat-card" style="animation-delay:${i*0.03}s">
+            <div class="card-body py-2">
+                <p class="mb-1"><strong>Q:</strong> ${h.question}</p>
+                <p class="mb-0"><strong>A:</strong> ${h.answer}</p>
+                <small class="text-muted">${new Date(h.created_at).toLocaleString()}</small>
+                ${h.sources && h.sources.length ? `<small class="text-muted ms-2">${h.sources.length} source(s)</small>` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+async function exportChat() {
+    if (chatHistory.length === 0) {
+        showAlert('No chat history to export.', 'warning');
+        return;
+    }
+    const docTitle = document.getElementById('docTitle').textContent.trim();
+    let md = `# Q&A: ${docTitle}\n\n`;
+    chatHistory.forEach(h => {
+        md += `## Q: ${h.question}\n\n${h.answer}\n\n`;
+        if (h.sources && h.sources.length) {
+            md += `*Sources: ${h.sources.length}*\n\n`;
+        }
+        md += `---\n\n`;
+    });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${docTitle.replace(/[^a-zA-Z0-9]/g, '_')}_qa.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showAlert('Chat exported!', 'success');
+}
+
+document.getElementById('askForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const question = document.getElementById('question').value.trim();
+    if (!question) return;
+
+    document.getElementById('loadingSpinner').classList.remove('d-none');
+    document.getElementById('emptyState').classList.add('d-none');
+
+    const historyContext = chatHistory.slice(-3).map(h => ({
+        question: h.question,
+        answer: h.answer
+    }));
+
+    const data = await api.request('/api/documents/ask/', 'POST', {
+        question: question,
+        document_id: DOC_ID,
+        n_results: 5,
+        history: historyContext
+    });
+
+    document.getElementById('loadingSpinner').classList.add('d-none');
+    document.getElementById('question').value = '';
+
+    if (data) {
+        const container = document.getElementById('chatHistory');
+        const entry = {
+            question: question,
+            answer: data.answer,
+            sources: data.sources || [],
+            created_at: new Date().toISOString()
+        };
+        chatHistory.push(entry);
+        container.insertAdjacentHTML('afterbegin', `
+            <div class="card mb-2 chat-card border-success">
+                <div class="card-body py-2">
+                    <p class="mb-1"><strong>Q:</strong> ${question}</p>
+                    <p class="mb-0"><strong>A:</strong> ${data.answer}</p>
+                    <small class="text-muted">Just now</small>
+                    ${data.sources && data.sources.length ? `<small class="text-muted ms-2">${data.sources.length} source(s)</small>` : ''}
+                </div>
+            </div>
+        `);
+    }
+});
+
+loadDocInfo();
+loadHistory();
+loadSuggestedQuestions();
+</script>
+{% endblock %}
