@@ -8,17 +8,44 @@
     </button>
 </div>
 
-<div class="row justify-content-center mb-5">
+<div id="suggestedSection" class="row justify-content-center mb-5">
     <div class="col-lg-8">
-        <div class="input-group input-group-lg shadow-sm" style="border-radius: 2rem; overflow: hidden;">
-            <span class="input-group-text bg-white border-0 ps-4"><i class="bi bi-search text-muted"></i></span>
-            <input type="text" class="form-control border-0 px-3" id="searchInput" placeholder="Search semantically across all your documents..." onkeydown="if(event.key==='Enter') searchDocs()" style="box-shadow: none;">
-            <button class="btn btn-success px-4" onclick="searchDocs()"><i class="bi bi-stars me-2"></i>Discover</button>
+        <div class="glass-panel p-4 rounded-4">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-stars text-success fs-4 me-2"></i>
+                <h5 class="fw-bold mb-0">Ask Across All Documents</h5>
+            </div>
+            <div id="suggestedQuestions" class="d-flex flex-wrap gap-2 mb-3">
+                <div class="text-muted small py-2"><div class="spinner-border spinner-border-sm me-2"></div>Generating suggestions...</div>
+            </div>
+            <div class="input-group">
+                <input type="text" class="form-control" id="askInput" placeholder="Or type your own question..." onkeydown="if(event.key==='Enter') askGlobalQuestion()">
+                <button class="btn btn-success" onclick="askGlobalQuestion()"><i class="bi bi-arrow-up"></i></button>
+            </div>
         </div>
     </div>
 </div>
 
-<div id="searchResults" class="d-none mb-4"></div>
+<div id="answerResult" class="d-none row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="glass-panel p-4 rounded-4 border border-success border-opacity-25">
+            <div class="d-flex align-items-start mb-3">
+                <div class="flex-shrink-0 me-3 border rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="bi bi-stars text-success"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div id="answerContent" class="answer-content" style="line-height: 1.6;"></div>
+                </div>
+            </div>
+            <div id="answerSources" class="d-none">
+                <details class="mt-2">
+                    <summary class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i> <span id="sourceCount"></span> sources</summary>
+                    <div id="sourceList" class="d-flex flex-wrap gap-1 mt-1"></div>
+                </details>
+            </div>
+        </div>
+    </div>
+</div>
 
 <div class="row" id="documentsList">
     <div class="col-12 text-center py-5">
@@ -49,9 +76,10 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">File</label>
-                        <input type="file" class="form-control" id="docFile" required>
+                        <input type="file" class="form-control" id="docFile" required onchange="validateFileType()">
+                        <div id="fileTypeError" class="d-none mt-1"><small class="text-danger"><i class="bi bi-exclamation-triangle me-1"></i><span id="fileTypeErrorMsg"></span></small></div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100" id="uploadSubmitBtn">Upload</button>
+                    <button type="submit" class="btn btn-primary w-100" id="uploadSubmitBtn" disabled>Upload</button>
                 </form>
             </div>
         </div>
@@ -138,21 +166,89 @@ async function loadDocuments() {
         </div>`}).join('');
 }
 
-async function searchDocs() {
-    const query = document.getElementById('searchInput').value.trim();
-    if (!query) return;
-    const data = await api.request('/api/documents/search/', 'POST', { query });
-    const container = document.getElementById('searchResults');
-    if (!data || !data.results || data.results.length === 0) {
-        container.innerHTML = '<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No results found.</div>';
-    } else {
-        container.innerHTML = `<div class="card"><div class="card-header"><strong><i class="bi bi-search me-1"></i>Search Results</strong></div><div class="card-body">${data.results.map(r => `
-            <div class="mb-2 p-2 bg-light rounded">
-                <small class="text-muted">${r.title} (score: ${r.score})</small>
-                <p class="mb-0 small">${r.text.substring(0, 200)}...</p>
-            </div>`).join('')}</div></div>`;
+async function loadSuggestedQuestions() {
+    const data = await api.request('/api/documents/suggest-global/');
+    const container = document.getElementById('suggestedQuestions');
+    if (!data || !data.questions || data.questions.length === 0) {
+        container.innerHTML = '<p class="text-muted small mb-0">Upload documents to get AI-suggested questions.</p>';
+        return;
     }
+    container.innerHTML = data.questions.map(q =>
+        `<button class="btn btn-outline-success btn-sm rounded-pill suggest-btn" onclick="askGlobal('${q.replace(/'/g, "\\'")}')">${q}</button>`
+    ).join('');
+}
+
+async function showAnswer(data) {
+    const container = document.getElementById('answerResult');
+    const content = document.getElementById('answerContent');
+    const sourcesDiv = document.getElementById('answerSources');
+
+    let formatted = data.answer;
+    if (typeof marked !== 'undefined' && marked.parse) {
+        try { formatted = marked.parse(data.answer); } catch(e) {
+            formatted = data.answer.replace(/[#*_\[\]`>|]/g, '').trim();
+        }
+    }
+    content.innerHTML = formatted;
+
+    if (data.sources && data.sources.length) {
+        document.getElementById('sourceCount').textContent = data.sources.length;
+        document.getElementById('sourceList').innerHTML = [...new Set(data.sources.map(s => s.title))].map(t =>
+            `<span class="badge bg-light text-dark border">${t}</span>`
+        ).join('');
+        sourcesDiv.classList.remove('d-none');
+    } else {
+        sourcesDiv.classList.add('d-none');
+    }
+
     container.classList.remove('d-none');
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+let isLoading = false;
+
+function setLoading(loading) {
+    isLoading = loading;
+    const input = document.getElementById('askInput');
+    const btn = document.querySelector('#askInput + .btn');
+    const suggestBtns = document.querySelectorAll('#suggestedQuestions .suggest-btn');
+    input.disabled = loading;
+    if (btn) btn.disabled = loading;
+    suggestBtns.forEach(b => b.disabled = loading);
+    if (loading) {
+        input.placeholder = 'Wait for a minute...';
+    } else {
+        input.placeholder = 'Or type your own question...';
+        input.focus();
+    }
+}
+
+async function askGlobal(question) {
+    if (isLoading) return;
+    setLoading(true);
+    const container = document.getElementById('answerResult');
+    container.classList.add('d-none');
+
+    const data = await api.request('/api/documents/ask/', 'POST', {
+        question: question,
+        n_results: 15
+    });
+
+    setLoading(false);
+
+    if (!data || data.error) {
+        showAlert('Could not generate answer.', 'warning');
+        return;
+    }
+    showAnswer(data);
+}
+
+async function askGlobalQuestion() {
+    const input = document.getElementById('askInput');
+    const question = input.value.trim();
+    if (!question || isLoading) return;
+    input.value = '';
+    await askGlobal(question);
 }
 
 let summaryCache = {};
@@ -208,6 +304,59 @@ document.getElementById('confirmDeleteBtn').addEventListener('click', async () =
     }
 });
 
+function validateFileType() {
+    const fileInput = document.getElementById('docFile');
+    const typeSelect = document.getElementById('docType');
+    const errorDiv = document.getElementById('fileTypeError');
+    const errorMsg = document.getElementById('fileTypeErrorMsg');
+    const submitBtn = document.getElementById('uploadSubmitBtn');
+
+    errorDiv.classList.add('d-none');
+    submitBtn.disabled = true;
+
+    const file = fileInput.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const bytes = new Uint8Array(e.target.result);
+        const expected = typeSelect.value;
+        let valid = true;
+        let msg = '';
+
+        // Reject image files regardless of selected type
+        if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4E && bytes[3] === 0x47) {
+            valid = false; msg = 'PNG images are not supported — upload a PDF, DOCX, or TXT document.';
+        } else if (bytes[0] === 0xFF && bytes[1] === 0xD8 && bytes[2] === 0xFF) {
+            valid = false; msg = 'JPEG images are not supported — upload a PDF, DOCX, or TXT document.';
+        } else if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) {
+            valid = false; msg = 'GIF images are not supported — upload a PDF, DOCX, or TXT document.';
+        } else if (bytes[0] === 0x42 && bytes[1] === 0x4D) {
+            valid = false; msg = 'BMP images are not supported — upload a PDF, DOCX, or TXT document.';
+        } else if (expected === 'pdf') {
+            valid = bytes[0] === 0x25 && bytes[1] === 0x50 && bytes[2] === 0x44 && bytes[3] === 0x46 && bytes[4] === 0x2D;
+            msg = 'File does not start with %PDF- — select PDF as file type only for PDF documents.';
+        } else if (expected === 'docx') {
+            valid = bytes[0] === 0x50 && bytes[1] === 0x4B;
+            msg = 'File does not start with PK (ZIP header) — select DOCX only for Word documents.';
+        } else if (expected === 'txt') {
+            valid = !bytes.includes(0x00);
+            msg = 'File contains null bytes or binary data — select TXT only for plain text files.';
+        }
+
+        if (!valid) {
+            errorMsg.textContent = msg;
+            errorDiv.classList.remove('d-none');
+            submitBtn.disabled = true;
+        } else {
+            submitBtn.disabled = false;
+        }
+    };
+    reader.readAsArrayBuffer(file.slice(0, 8));
+}
+
+document.getElementById('docType').addEventListener('change', validateFileType);
+
 document.getElementById('uploadForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitBtn = document.getElementById('uploadSubmitBtn');
@@ -231,5 +380,6 @@ document.getElementById('uploadForm').addEventListener('submit', async (e) => {
 });
 
 loadDocuments();
+loadSuggestedQuestions();
 </script>
 {% endblock %}

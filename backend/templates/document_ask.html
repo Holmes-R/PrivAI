@@ -100,7 +100,7 @@ async function loadHistory() {
                     <i class="bi bi-stars text-success"></i>
                 </div>
                 <div class="flex-grow-1" style="max-width: 90%;">
-                    <div class="markdown-body">${marked.parse(h.answer)}</div>
+                    <div class="answer-content">${marked.parse(h.answer)}</div>
                     <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
                         ${h.sources && h.sources.length ? `<small class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill fw-normal"><i class="bi bi-link-45deg me-1"></i>${h.sources.length} sources</small>` : '<span></span>'}
                         <small class="text-muted" style="font-size: 0.75rem;">${new Date(h.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
@@ -192,7 +192,7 @@ document.getElementById('askForm').addEventListener('submit', async (e) => {
                         <i class="bi bi-stars text-success"></i>
                     </div>
                     <div class="flex-grow-1" style="max-width: 90%;">
-                        <div class="markdown-body">${marked.parse(data.answer)}</div>
+                        <div>${marked.parse(data.answer)}</div>
                         <div class="d-flex justify-content-between align-items-center mt-2 pt-2">
                             ${data.sources && data.sources.length ? `<small class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill fw-normal"><i class="bi bi-link-45deg me-1"></i>${data.sources.length} sources</small>` : '<span></span>'}
                             <small class="text-muted" style="font-size: 0.75rem;">Just now</small>

@@ -161,6 +161,14 @@ def summarize_document_view(request, doc_id):
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
+def suggest_global_view(request):
+    from .rag import suggest_global_questions
+    questions = suggest_global_questions(request.user.id)
+    return Response({"questions": questions})
+
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
 def suggest_questions_view(request, doc_id):
     from .rag import suggest_questions
     from .utils import extract_text_from_file
