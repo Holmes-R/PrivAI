@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: privai
+    env: python
+    buildCommand: |
+      pip install -r backend/requirements.txt
+      python backend/manage.py collectstatic --noinput
+    startCommand: gunicorn --chdir backend privai_django.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 180 --worker-class sync
+    envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: DEBUG
+        value: "False"
+      - key: ALLOWED_HOSTS
+        value: ".onrender.com"
+      - key: CSRF_TRUSTED_ORIGINS
+        value: "https://*.onrender.com"
+      - key: PORT
+        value: "8000"
