@@ -1,13 +1,10 @@
 # PrivAI — Private Document RAG
 
-> **Live Demo:** [https://privai-qt3n.onrender.com/](https://privai-qt3n.onrender.com/)
+> **Live Link:** [https://privai-qt3n.onrender.com/](https://privai-qt3n.onrender.com/)
 
 A privacy-first Retrieval-Augmented Generation (RAG) system that lets you upload documents (PDF, DOCX, TXT) and ask questions about them using AI — **your data stays under your control**.
 
 ---
-
-## STAR Breakdown
-
 ### Situation
 Users needed a way to extract insights from their private documents without sending sensitive data to public AI services like ChatGPT or NotebookLM. Existing solutions either required uploading data to third-party servers or lacked per-document Q&A with persistent chat history.
 
