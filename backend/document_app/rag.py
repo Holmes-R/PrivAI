@@ -88,7 +88,7 @@ def _is_binary_chunk(text: str) -> bool:
     return printable / len(text) < 0.8
 
 
-def answer_question(user_id: int, question: str, n_results: int = 15, document_id: int = None, history: list = None) -> dict:
+def answer_question(user_id: int, question: str, n_results: int = 10, document_id: int = None, history: list = None) -> dict:
     from .vector_store import get_embedding_model, get_user_collection
 
     if not settings.GEMINI_API_KEY:

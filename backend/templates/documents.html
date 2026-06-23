@@ -233,7 +233,7 @@ async function askGlobal(question) {
 
     const data = await api.request('/api/documents/ask/', 'POST', {
         question: question,
-        n_results: 15
+        n_results: 10
     });
 
     setLoading(false);
