@@ -8,40 +8,42 @@
     </button>
 </div>
 
-<div id="suggestedSection" class="row justify-content-center mb-5">
+<div id="suggestedSection" class="row justify-content-center mb-5 mt-2">
     <div class="col-lg-8">
-        <div class="glass-panel p-4 rounded-4">
-            <div class="d-flex align-items-center mb-3">
-                <i class="bi bi-stars text-success fs-4 me-2"></i>
-                <h5 class="fw-bold mb-0">Ask Across All Documents</h5>
-            </div>
-            <div id="suggestedQuestions" class="d-flex flex-wrap gap-2 mb-3">
-                <div class="text-muted small py-2"><div class="spinner-border spinner-border-sm me-2"></div>Generating suggestions...</div>
-            </div>
-            <div class="input-group">
-                <input type="text" class="form-control" id="askInput" placeholder="Or type your own question..." onkeydown="if(event.key==='Enter') askGlobalQuestion()">
-                <button class="btn btn-success" onclick="askGlobalQuestion()"><i class="bi bi-arrow-up"></i></button>
-            </div>
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-gradient"><i class="bi bi-magic me-2"></i>Global Knowledge Search</h3>
+            <p class="text-muted mb-0">Ask anything across all your uploaded documents.</p>
+        </div>
+        
+        <div id="suggestedQuestions" class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+            <div class="text-muted small py-2"><div class="spinner-border spinner-border-sm me-2"></div>Generating suggestions...</div>
+        </div>
+
+        <div class="input-group input-group-lg shadow-sm p-1 align-items-center" style="border-radius: 2rem; border: 1px solid #e5e7eb; background: var(--surface-light);">
+            <input type="text" class="form-control border-0 bg-transparent px-4 fs-6" id="askInput" placeholder="Message PrivAI..." onkeydown="if(event.key==='Enter') askGlobalQuestion()" style="box-shadow: none;">
+            <button class="btn btn-dark rounded-circle me-1 shadow-sm" onclick="askGlobalQuestion()" style="width: 45px; height: 45px; display: flex; align-items: center; justify-content: center; transition: transform 0.2s;">
+                <i class="bi bi-arrow-up fs-5"></i>
+            </button>
         </div>
     </div>
 </div>
 
 <div id="answerResult" class="d-none row justify-content-center mb-5">
     <div class="col-lg-8">
-        <div class="glass-panel p-4 rounded-4 border border-success border-opacity-25">
+        <div class="p-4 bg-white rounded-4 shadow-sm border border-success border-opacity-25 chat-card">
             <div class="d-flex align-items-start mb-3">
-                <div class="flex-shrink-0 me-3 border rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                <div class="flex-shrink-0 me-3 mt-1 border rounded-circle bg-white shadow-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                     <i class="bi bi-stars text-success"></i>
                 </div>
                 <div class="flex-grow-1">
-                    <div id="answerContent" class="answer-content" style="line-height: 1.6;"></div>
+                    <div id="answerContent" class="markdown-body text-dark" style="font-size: 1.05rem; line-height: 1.6;"></div>
                 </div>
             </div>
-            <div id="answerSources" class="d-none">
-                <details class="mt-2">
-                    <summary class="text-muted small fw-bold"><i class="bi bi-journal-text me-1"></i> <span id="sourceCount"></span> sources</summary>
-                    <div id="sourceList" class="d-flex flex-wrap gap-1 mt-1"></div>
-                </details>
+            <div id="answerSources" class="d-none ms-5 ps-2">
+                <div class="d-flex align-items-center flex-wrap gap-2 mt-3 pt-3 border-top border-secondary border-opacity-10">
+                    <small class="text-muted fw-bold"><i class="bi bi-journal-text me-1"></i> <span id="sourceCount"></span> Sources Used:</small>
+                    <div id="sourceList" class="d-flex flex-wrap gap-1"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -174,7 +176,7 @@ async function loadSuggestedQuestions() {
         return;
     }
     container.innerHTML = data.questions.map(q =>
-        `<button class="btn btn-outline-success btn-sm rounded-pill suggest-btn" onclick="askGlobal('${q.replace(/'/g, "\\'")}')">${q}</button>`
+        `<button class="btn btn-outline-secondary btn-sm rounded-pill suggest-btn shadow-sm" onclick="askGlobal('${q.replace(/'/g, "\\'")}')">${q}</button>`
     ).join('');
 }
 
