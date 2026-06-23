@@ -156,7 +156,3 @@ backend/
 | GET | `/api/history/chat/` | Chat history |
 
 ---
-
-## License
-
-MIT
