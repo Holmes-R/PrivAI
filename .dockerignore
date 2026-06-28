@@ -1,0 +1,15 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+.env
+venv
+.venv
+.gitignore
+README.md
+backend/vector_engine/__pycache__
+backend/vector_engine/app/__pycache__
+backend/chroma_db
+backend/staticfiles
+backend/media
+backend/db.sqlite3

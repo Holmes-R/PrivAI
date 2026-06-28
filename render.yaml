@@ -3,9 +3,10 @@ services:
     name: privai
     env: python
     buildCommand: |
-      pip install --no-cache-dir -r backend/requirements.txt
+      pip install --no-cache-dir -r requirements.txt
       python backend/manage.py collectstatic --noinput
-    startCommand: gunicorn --chdir backend privai_django.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 300 --max-requests 1 --log-level info
+    releaseCommand: python backend/manage.py migrate
+    startCommand: gunicorn --chdir backend privai_django.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 600 --max-requests 1 --log-level info --preload
     healthCheckPath: /
     envVars:
       - key: DJANGO_SECRET_KEY

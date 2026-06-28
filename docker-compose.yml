@@ -1,7 +1,9 @@
+name: privai
+
 services:
-  django:
+  app:
     build: .
-    container_name: privai-django
+    container_name: privai
     ports:
       - "8000:8000"
     volumes:
@@ -10,19 +12,7 @@ services:
       - chroma_data:/app/backend/chroma_db
     env_file:
       - .env
-    command: gunicorn privai_django.wsgi:application --bind 0.0.0.0:8000 --workers 4
-
-  vector-engine:
-    build: .
-    container_name: privai-vector
-    ports:
-      - "8001:8001"
-    volumes:
-      - chroma_data:/app/backend/chroma_db
-    env_file:
-      - backend/vector_engine/.env
-    working_dir: /app/backend/vector_engine
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8001
+    restart: unless-stopped
 
 volumes:
   sqlite_data:
