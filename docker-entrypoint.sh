@@ -13,6 +13,4 @@ exec gunicorn --chdir backend privai_django.wsgi:application \
     --workers 1 \
     --threads 2 \
     --timeout 600 \
-    --max-requests 1 \
-    --log-level info \
-    --preload
+    --log-level info

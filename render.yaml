@@ -6,7 +6,7 @@ services:
       pip install --no-cache-dir -r requirements.txt
       python backend/manage.py collectstatic --noinput
       python backend/manage.py migrate --noinput
-    startCommand: gunicorn --chdir backend privai_django.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 600 --max-requests 1 --log-level info --preload
+    startCommand: gunicorn --chdir backend privai_django.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 600 --log-level info
     healthCheckPath: /
     envVars:
       - key: DJANGO_SECRET_KEY
@@ -19,7 +19,5 @@ services:
         value: ".onrender.com"
       - key: CSRF_TRUSTED_ORIGINS
         value: "https://*.onrender.com"
-      - key: PORT
-        value: "8000"
       - key: WEB_CONCURRENCY
         value: "1"
